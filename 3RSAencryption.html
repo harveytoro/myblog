@@ -1,0 +1,96 @@
+
+<h1>RSA Encryption : How to encrypt a character.</h1>
+
+<p>If you follow me on <a href="http://twitter.com/harveytoro" title="Twitter">Twitter</a> you may have seen a few tweets from me over the last week about how to do RSA Encryption in C. I wanted to do this as a piece of my coursework that involved encryption. The problem was not how to write the algorithm to encrypt a character but more how to handle the large integers that are involved in the encryption. What would have saved me time is if somebody on twitter had replied to my tweet with &quot;Modular exponentiation&quot; or if I had read the <a href="http://en.wikipedia.org/wiki/RSA_(algorithm)" title="RSA wikipedia">RSA Encryption wikipedia</a> more thoroughly I may have seen it mentioned on there.</p>
+
+<p>Anyway I am writing this blog post to explain how I went about solving this problem and coming to my final solution using modular exponentiation.</p>
+
+<p><code>I am using the working example values from the RSA wikipedia page.</code></p>
+
+<blockquote>
+<p>Public Keys: </p>
+
+<p>n = 3233</p>
+
+<p>e = 17</p>
+
+<p>Private Key:</p>
+
+<p>d = 2753</p>
+</blockquote>
+
+<p>So with no code involved to encrypt the letter &#39;a&#39; we could take its ASCII value of 97 and do the following:</p>
+
+<blockquote>
+<p>(97<sup>17</sup> ) is where the big number problem comes in. </p>
+
+<p>((97<sup>17</sup> ) mod 3233 ) = 1632 you can take my word for it or check it out using <a href="http://www.wolframalpha.com/input/?i=97%5E17" title="Wolfram Alpha">Wolfram Alpha</a></p>
+
+<p>So thats it RSA encrypted 97 = 1632</p>
+</blockquote>
+
+<p>To decrypt we need to use the n and d keys:</p>
+
+<blockquote>
+<p>(1632<sup>2753</sup> ) ouch thats even bigger</p>
+
+<p>((1632<sup>2753</sup> ) mod 3233) = 97 you can also take my word for it or use Wolfram Alpha</p>
+
+<p>So we have now decrypted 1632 back to 97 which is the ASCII value of &#39;a&#39;</p>
+</blockquote>
+
+<p>That is a basic implementation of the algorithm to encrypt and decrypt a characters ASCII value. Now lets talk problems.</p>
+
+<p>97<sup>17</sup> is 113 bits (by my calculations). Which means that we are now talking about using <code>long long int</code> which is explained on the C data types wikipedia page as an integer of at least 64 bits in size well we know that its bigger than that, so I googled &#39;how many bits can a long long int take&#39; and found an answer that says it is platform dependent and relies on the compiler. The next thing to do from here was to write the encryption algorithm in C using long long int and see if when comparing the result of me using <a href="http://www.wolframalpha.com/" title="Wolfram Alpha">Wolfram Alpha&#39;s calculator</a> results were the same as the ones being outputted from my program, this being a trial and error method. The results were not the same and just so you know I am using the GCC compiler to compile C through CodeRunner on a Mac. Long long int wasn&#39;t able to store a number big enough so I had some funny results.</p>
+
+<p>It would probably be a good time to say that I am no maths guy, So the results that I said were funny may have had some relation but were not the correct answer that I wanted so thats all I cared about.</p>
+
+<p>So what to do from here, giving up wasn&#39;t an option so it was probably around this time I took to twitter to ask with no real useful replies received. What I did next is probably the best advice I could give anyone, programming languages come in all shapes and sizes but at the end of the day its just syntax, so what I did and what I do when I get stuck on a problem in one language is solve the problem in another language which in this case was Java.</p>
+
+<p>Why Java well because after doing a few different google searches I found the Java BigInteger class, which when I tested did exactly what I wanted it to do. Here&#39;s the Java code:</p>
+
+<blockquote>
+<p>import java.math.BigInteger;</p>
+
+<p>...</p>
+
+<p>public static void main(String[] args) {</p>
+
+<blockquote>
+<p>BigInteger e;</p>
+
+<p>e = new BigInteger(&quot;17&quot;);</p>
+
+<p>BigInteger n;</p>
+
+<p>n = new BigInteger(&quot;3233&quot;);       </p>
+
+<p>BigInteger toencrypt;</p>
+
+<p>toencrypt = new BigInteger(&quot;97&quot;);   </p>
+
+<p>BigInteger Encrypted;</p>
+
+<p>Encrypted = toencrypt.modPow(e,n);</p>
+
+<p>System.out.println(Encrypted);    </p>
+
+<p>BigInteger j;</p>
+
+<p>j = new BigInteger(&quot;2753&quot;);    </p>
+
+<p>BigInteger Decrypted;</p>
+
+<p>Decrypted = Encrypted.modPow(j,n); </p>
+
+<p>System.out.println(Decrypted);</p>
+</blockquote>
+
+<p>}</p>
+</blockquote>
+
+<p>Once I had the code working in Java I looked for C classes that did the same, and yes there are a few but Importing a C library into Visual Studio (where I ultimately needed it) and compiling it etc… seemed like a big waste of time, just to use it on a few lines of code. I went back to my Java code above and copied the modPow function name part and pasted it in to google. I found the term <a href="http://en.wikipedia.org/wiki/Modular_exponentiation#In_programming_languages" title="Modular Exponentiation">Modular exponentiation</a> which is pretty obviously formed by exponentiation (to the power of) and modular (mod), I searched wikipedia for this term <a href="http://en.wikipedia.org/wiki/Modular_exponentiation#In_programming_languages" title="Modular Exponentiation">Modular Exponentiation Wikipedia</a>, after reading the wikipedia page I had a solution. Now all was left was to write the modular exponentiation memory efficient method algorithm in C:</p>
+<script src="https://gist.github.com/4110690.js"> </script>
+<h4>Thats how I went about solving that problem on to the next.</h4>
+
+<p>Disclaimer: Every effort has been made to ensure all information that is given is accurate and that grammar is correct but mistakes may have been made, If you spot one tweet me <a href="http://twitter.com/harveytoro" title="Twitter">@harveytoro</a>.</p>
